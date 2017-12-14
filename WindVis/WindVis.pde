@@ -10,12 +10,7 @@ Table uwnd;
 // northward wind, and negative values indicate southward wind.
 Table vwnd;
 
-// An image to use for the background.  The image I provide is a
-// modified version of this wikipedia image:
-//https://commons.wikimedia.org/wiki/File:Equirectangular_projection_SW.jpg
-// If you want to use your own image, you should take an equirectangular
-// map and pick out the subset that corresponds to the range from
-// 135W to 65W, and from 55N to 25N
+
 PImage img;
 
 Particle[] particles;
@@ -25,8 +20,6 @@ int particleNum = 3000;
 
 
 void setup() {
-  // If this doesn't work on your computer, you can remove the 'P3D'
-  // parameter.  On many computers, having P3D should make it run faster
   size(700, 400, P3D);
   pixelDensity(displayDensity());
   
@@ -36,7 +29,6 @@ void setup() {
    
   particles = new Particle[particleNum];  
   createParticles();
-    
 }
 
 
@@ -63,18 +55,18 @@ void draw() {
      
    //Runge-Kutta Start ----------------------------------------------
   
-    float k1x = readInterp(uwnd, (particle.xPos * uX) / width, (particle.yPos * uY) / height);
-    float k2x = readInterp(uwnd, ((particle.xPos + (step/2)) * uX) / width, ((particle.yPos + step*(k1x/2))* uY ) / height);
-    float k3x = readInterp(uwnd, ((particle.xPos + (step/2))* uX) / width, ((particle.yPos + step*(k2x/2))* uY) / height);
-    float k4x = readInterp(uwnd, ((particle.xPos + step) * uX) / width, ((particle.yPos + step*(k3x))* uY) / height);
+    float kx1 = readInterp(uwnd, (particle.xPos * uX) / width, (particle.yPos * uY) / height);
+    float kx2 = readInterp(uwnd, ((particle.xPos + (step/2)) * uX) / width, ((particle.yPos + step*(kx1/2))* uY ) / height);
+    float kx3 = readInterp(uwnd, ((particle.xPos + (step/2))* uX) / width, ((particle.yPos + step*(kx2/2))* uY) / height);
+    float kx4 = readInterp(uwnd, ((particle.xPos + step) * uX) / width, ((particle.yPos + step*(kx3))* uY) / height);
     
-    float k1y = readInterp(vwnd, (particle.xPos * uX) / width, (particle.yPos * uY) / height);
-    float k2y = readInterp(vwnd, ((particle.xPos + (step/2)) * uX) / width, ((particle.yPos + step*(k1y/2))* uY ) / height);
-    float k3y = readInterp(vwnd, ((particle.xPos + (step/2))* uX) / width, ((particle.yPos + step*(k2y/2))* uY) / height);
-    float k4y = readInterp(vwnd, ((particle.xPos + step) * uX) / width, ((particle.yPos + (step*k3y))* uY) / height);
+    float ky1 = readInterp(vwnd, (particle.xPos * uX) / width, (particle.yPos * uY) / height);
+    float ky2 = readInterp(vwnd, ((particle.xPos + (step/2)) * uX) / width, ((particle.yPos + step*(ky1/2))* uY ) / height);
+    float ky3 = readInterp(vwnd, ((particle.xPos + (step/2))* uX) / width, ((particle.yPos + step*(ky2/2))* uY) / height);
+    float ky4 = readInterp(vwnd, ((particle.xPos + step) * uX) / width, ((particle.yPos + (step*ky3))* uY) / height);
     
-    particle.setX(particle.xPos + ((step/6)*(k1x+(2*k2x)+(2*k3x)+k4x)));
-    particle.setY(particle.yPos - ((step/6)*(k1y+(2*k2y)+(2*k3y)+k4y)));
+    particle.setX(particle.xPos + ((step/6)*(kx1+(2*kx2)+(2*kx3)+kx4)));
+    particle.setY(particle.yPos - ((step/6)*(ky1+(2*ky2)+(2*ky3)+ky4))); //negate for processing compatibility
     //Runge-Kutta End ------------------------------------
     
     
@@ -130,7 +122,7 @@ void drawMouseLine() {
   line(mouseX, mouseY, mouseX + dx, mouseY + dy);
 }
 
-// Reads a raw value (bret's code. does not need to be changed)
+// Reads a raw value
 float readRaw(Table tab, int x, int y) {
   if (x < 0) {
     x = 0;
