@@ -40,6 +40,7 @@ void draw() {
   //fit points onto screen
   float uX = uwnd.getColumnCount(); //561, vwnd has same size
   float uY = uwnd.getRowCount();  //240, vwnd has same size
+  
   for (Particle particle: particles) {
     
     //Euler Integration Start-------------------------------------------------
