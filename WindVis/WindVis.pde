@@ -20,7 +20,7 @@ PImage img;
 
 Particle[] particles;
 float step = 0.1;  //step = 0.1
-int particleNum = 2000;  //number of particles = 2000;
+int particleNum = 3000;  //number of particles = 2500;
 //maximum lifetime = 200 (declared in Particle class);
 
 
@@ -29,13 +29,11 @@ void setup() {
   // parameter.  On many computers, having P3D should make it run faster
   size(700, 400, P3D);
   pixelDensity(displayDensity());
-  frameRate = 3;
   
   img = loadImage("background.png");
   uwnd = loadTable("uwnd.csv");
   vwnd = loadTable("vwnd.csv");
-  
- 
+   
   particles = new Particle[particleNum];  
   createParticles();
     
@@ -50,36 +48,33 @@ void draw() {
   //fit points onto screen
   float uX = uwnd.getColumnCount(); //561, vwnd has same size
   float uY = uwnd.getRowCount();  //240, vwnd has same size
-  
   for (Particle particle: particles) {
+    //euler integration-------------------------------------------------
+     
+    //float dx = readInterp(uwnd, (particle.xPos * uX) / width, (particle.yPos * uY) / height);
+    //float dy = -readInterp(vwnd, (particle.xPos * uX) / width, (particle.yPos * uY) / height); 
     
-    float dx = readInterp(uwnd, (particle.xPos * uX) / width, (particle.yPos * uY) / height);
-    float dy = -readInterp(vwnd, (particle.xPos * uX) / width, (particle.yPos * uY) / height); 
+    //particle.setX(particle.xPos + (step*dx));
+    //particle.setY(particle.yPos + (step*dy));
     
-    //euler integration
-    particle.setX(particle.xPos + (step*dx));
-    particle.setY(particle.yPos + (step*dy));
+     
+   //Runge-Kutta----------------------------------------------
+  
+    float k1x = readInterp(uwnd, (particle.xPos * uX) / width, (particle.yPos * uY) / height);
+    float k2x = readInterp(uwnd, ((particle.xPos + (step/2)) * uX) / width, ((particle.yPos + step*(k1x/2))* uY ) / height);
+    float k3x = readInterp(uwnd, ((particle.xPos + (step/2))* uX) / width, ((particle.yPos + step*(k2x/2))* uY) / height);
+    float k4x = readInterp(uwnd, ((particle.xPos + step) * uX) / width, ((particle.yPos + step*(k3x))* uY) / height);
     
-    
-    //runge-kutta
-    //float dx = readInterp(uwnd, particles[i].xPos, particles[i].yPos) * 10;
-    //float dy = -readInterp(vwnd, particles[i].xPos, particles[i].yPos) * 10; 
-    
-    //float k1x = 0;
-    //float k2x = 0;
-    //float k3x = 0;
-    //float k4x = 0;
-    
-    //float k1y = 0;
-    //float k2y = 0;
-    //float k3y = 0;
-    //float k4y = 0;
+    float k1y = readInterp(vwnd, (particle.xPos * uX) / width, (particle.yPos * uY) / height);
+    float k2y = readInterp(vwnd, ((particle.xPos + (step/2)) * uX) / width, ((particle.yPos + step*(k1y/2))* uY ) / height);
+    float k3y = readInterp(vwnd, ((particle.xPos + (step/2))* uX) / width, ((particle.yPos + step*(k2y/2))* uY) / height);
+    float k4y = readInterp(vwnd, ((particle.xPos + step) * uX) / width, ((particle.yPos + (step*k3y))* uY) / height);
     
     
-    //particles[i].setX(particles[i].xPos + ((1/6)*(k1x+2*k2x+2*k3x+k4x)));
-    //particles[i].setY(particles[i].yPos + ((1/6)*(k1y+2*k2y+2*k3y+k4y)));
+    particle.setX(particle.xPos + ((step/6)*(k1x*(2*k2x)*(2*k3x)+k4x)));
+    particle.setY(particle.yPos - ((step/6)*(k1y*(2*k2y)*(2*k3y)+k4y)));
     
-    //when particle dies
+    //when particle dies -----------------------------------------------
     if (particle.lifetime <= 0) {
       particle.reset();
     }
@@ -88,20 +83,6 @@ void draw() {
     particle.decreaseLifetime();
   }
   
-}
-
-void drawMouseLine() {
-  // Convert from pixel coordinates into coordinates
-  // corresponding to the data.
-  float a = mouseX * uwnd.getColumnCount() / width;
-  float b = mouseY * uwnd.getRowCount() / height;
-  
-  // Since a positive 'v' value indicates north, we need to
-  // negate it so that it works in the same coordinates as Processing
-  // does.
-  float dx = readInterp(uwnd, a, b) * 10;
-  float dy = -readInterp(vwnd, a, b) * 10;
-  line(mouseX, mouseY, mouseX + dx, mouseY + dy);
 }
 
 
@@ -133,6 +114,27 @@ float readInterp(Table tab, float a, float b) {
   return bilinearInterpolation;
 }
 
+void createParticles() {
+  for(int i = 0; i < particleNum; i++) {
+    Particle particle = new Particle();
+    particles[i] = particle;
+  }  
+}
+
+void drawMouseLine() {
+  // Convert from pixel coordinates into coordinates
+  // corresponding to the data.
+  float a = mouseX * uwnd.getColumnCount() / width;
+  float b = mouseY * uwnd.getRowCount() / height;
+  
+  // Since a positive 'v' value indicates north, we need to
+  // negate it so that it works in the same coordinates as Processing
+  // does.
+  float dx = readInterp(uwnd, a, b) * 10;
+  float dy = -readInterp(vwnd, a, b) * 10;
+  line(mouseX, mouseY, mouseX + dx, mouseY + dy);
+}
+
 // Reads a raw value (bret's code. does not need to be changed)
 float readRaw(Table tab, int x, int y) {
   if (x < 0) {
@@ -148,12 +150,4 @@ float readRaw(Table tab, int x, int y) {
     y = tab.getRowCount() - 1;
   }
   return tab.getFloat(y,x);
-}
-
-void createParticles() {
-  
-  for(int i = 0; i < 2000; i++) {
-    Particle particle = new Particle();
-    particles[i] = particle;
-  }  
 }
