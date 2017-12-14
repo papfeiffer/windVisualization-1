@@ -93,28 +93,19 @@ void draw() {
 // Reads a bilinearly-interpolated value at the given a and b
 // coordinates.  Both a and b should be in data coordinates.
 float readInterp(Table tab, float a, float b) {
-  //tab = u component or v component
-  //grid units
   
-  //original values
-  float x = a;
-  float y = b;
-  
-  //bilinear interpolation
   int x1 = int(a);
   int x2 = x1+1;
   int y1 = int(b);
   int y2 = y1+1;
 
-  // 2D array
-  //return readRaw(tab, x, y);
   float Q11 = readRaw(tab, x1, y1);
   float Q12 = readRaw(tab, x1, y2);
   float Q22 = readRaw(tab, x2, y2);
   float Q21 = readRaw(tab, x2, y1);
 
-  float bilinearInterpolation = (1.0/ ((x2-x1)*(y2-y1))) 
-       * ((Q11*(x2-x)*(y2-y)) + (Q21*(x-x1)*(y2-y)) + (Q12*(x2-x)*(y-y1)) + (Q22*(x-x1)*(y-y1)));
+  float bilinearInterpolation = (1.0/ ((x2-x1)*(y2-y1))) * ((Q11*(x2-a)*(y2-b)) + (Q21*(a-x1)*(y2-b)) + (Q12*(x2-a)*(b-y1)) + (Q22*(a-x1)*(b-y1)));
+       
   return bilinearInterpolation;
 }
 
