@@ -14,8 +14,8 @@ Table vwnd;
 PImage img;
 
 Particle[] particles;
-float step = 0.15;  
-int particleNum = 3000;  
+float step = 0.13;  
+int particleNum = 2800;  
 //maximum lifetime = 200 (declared in Particle class);
 
 
@@ -68,6 +68,7 @@ void draw() {
     
     particle.setX(particle.xPos + ((step/6)*(kx1+(2*kx2)+(2*kx3)+kx4)));
     particle.setY(particle.yPos - ((step/6)*(ky1+(2*ky2)+(2*ky3)+ky4))); //negate for processing compatibility
+    
     //Runge-Kutta End ------------------------------------
     
     
